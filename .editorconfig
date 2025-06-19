@@ -21,4 +21,4 @@ spaces_around_brackets = false
 curly_bracket_next_line = false
 indent_brace_style = K&R
 continuation_indent_size = 2
-spaces_around_commas = true 
+spaces_around_commas = true
