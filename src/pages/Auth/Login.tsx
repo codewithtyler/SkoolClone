@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Mail, Lock, Eye, EyeOff, Loader } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import config from '../../../config.json';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,9 +11,27 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
 
   const { signIn } = useAuth();
   const navigate = useNavigate();
+
+  // On mount, prefill email/rememberMe from localStorage
+  React.useEffect(() => {
+    const remember = localStorage.getItem('rememberMe') === 'true';
+    const rememberedEmail = localStorage.getItem('rememberEmail') || '';
+    if (remember && rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  // Preset credentials for roles
+  const rolePresets = [
+    { label: 'Admin', email: 'admin@example.com', password: 'password123' },
+    { label: 'Teacher', email: 'teacher@example.com', password: 'password123' },
+    { label: 'Student', email: 'student@example.com', password: 'password123' },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,13 +39,25 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      const { error } = await signIn(email, password);
+      const { error }: { error: unknown } = await signIn(email, password, rememberMe);
       if (error) {
-        setError(error.message);
+        setError(
+          typeof error === 'object' && error !== null && 'message' in error && typeof (error as { message: unknown }).message === 'string'
+            ? (error as { message: string }).message
+            : 'Login failed'
+        );
       } else {
+        // Handle rememberMe localStorage
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem('rememberEmail', email);
+        } else {
+          localStorage.removeItem('rememberMe');
+          localStorage.removeItem('rememberEmail');
+        }
         navigate('/dashboard');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -109,6 +140,8 @@ const Login: React.FC = () => {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded"
+                  checked={rememberMe}
+                  onChange={e => setRememberMe(e.target.checked)}
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-400">
                   Remember me
@@ -138,6 +171,44 @@ const Login: React.FC = () => {
               )}
             </button>
           </form>
+
+          {/* Role-based login buttons for development only */}
+          {!config.isProduction && (
+            <div className="mt-6 space-y-2">
+              <div className="flex flex-col gap-2">
+                {rolePresets.map((role) => (
+                  <button
+                    key={role.label}
+                    type="button"
+                    className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                    onClick={async () => {
+                      setEmail(role.email);
+                      setPassword(role.password);
+                      setRememberMe(true);
+                      setLoading(true);
+                      setError('');
+                      const { error }: { error: unknown } = await signIn(role.email, role.password, true);
+                      if (error) {
+                        setError(
+                          typeof error === 'object' && error !== null && 'message' in error && typeof (error as { message: unknown }).message === 'string'
+                            ? (error as { message: string }).message
+                            : 'Login failed'
+                        );
+                        setLoading(false);
+                      } else {
+                        localStorage.setItem('rememberMe', 'true');
+                        localStorage.setItem('rememberEmail', role.email);
+                        setLoading(false);
+                        navigate('/dashboard');
+                      }
+                    }}
+                  >
+                    Login as {role.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-8">
             <div className="relative">
