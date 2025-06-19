@@ -2,14 +2,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { CommunityProvider } from './contexts/CommunityContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-import Communities from './pages/Communities';
-import Courses from './pages/Courses';
-import Leaderboard from './pages/Leaderboard';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import CommunityLayout from './components/CommunityLayout';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -38,48 +36,48 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
 
-  return !user ? <>{children}</> : <Navigate to="/dashboard" />;
+  return !user ? <>{children}</> : <Navigate to="/" />;
 };
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
+  const lastCommunitySlug = localStorage.getItem('lastCommunitySlug');
 
   return (
     <div className="App">
-      {user && <Navbar />}
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={
+          !user ? (
+            <>
+              <Navbar />
+              <Home />
+            </>
+          ) : (
+            <Navigate to={`/${lastCommunitySlug || ''}`} replace />
+          )
+        } />
         <Route path="/login" element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
+          <>
+            <Navbar />
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          </>
         } />
         <Route path="/register" element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
+          <>
+            <Navbar />
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          </>
         } />
 
-        {/* Protected Routes */}
-        <Route path="/dashboard" element={
+        {/* Community Routes (no Navbar here) */}
+        <Route path=":slug/*" element={
           <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/communities" element={
-          <ProtectedRoute>
-            <Communities />
-          </ProtectedRoute>
-        } />
-        <Route path="/courses" element={
-          <ProtectedRoute>
-            <Courses />
-          </ProtectedRoute>
-        } />
-        <Route path="/leaderboard" element={
-          <ProtectedRoute>
-            <Leaderboard />
+            <CommunityLayout />
           </ProtectedRoute>
         } />
 
@@ -93,9 +91,11 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <CommunityProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </CommunityProvider>
     </Router>
   );
 };

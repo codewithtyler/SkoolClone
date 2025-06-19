@@ -1,15 +1,18 @@
 // Courses page displaying all available courses with filtering
 import React, { useState } from 'react';
-import { Search, Plus, Filter, BookOpen, Clock, DollarSign, Trophy } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Search, Plus, BookOpen, Clock, DollarSign, Trophy } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
 import CourseCard from '../components/CourseCard';
 import { Course } from '../types';
+import { useCommunity } from '../contexts/CommunityContext';
 
 const Courses: React.FC = () => {
+  const { slug } = useParams();
+  const { currentCommunity } = useCommunity();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  // Mock data - replace with real data from Supabase
+  // Mock data - add community_id to each course
   const mockCourses: Course[] = [
     {
       id: '1',
@@ -104,8 +107,15 @@ const Courses: React.FC = () => {
     { id: 'level-locked', name: 'Level Locked', icon: Trophy }
   ];
 
+  // Filter courses by current community
+  const communityCourses = mockCourses.filter(course => course.community_id === currentCommunity?.id);
+
+  if (!currentCommunity || currentCommunity.slug !== slug) {
+    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">No community selected.</div>;
+  }
+
   const getFilteredCourses = () => {
-    let filtered = mockCourses.filter(course =>
+    const filtered = communityCourses.filter(course =>
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -130,9 +140,9 @@ const Courses: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Courses</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">{currentCommunity.name} Courses</h1>
             <p className="text-gray-400">
-              Expand your skills with our comprehensive course library
+              Expand your skills with courses from {currentCommunity.name}
             </p>
           </div>
           <Link

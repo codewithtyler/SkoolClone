@@ -1,22 +1,12 @@
 // Home/Landing page component showcasing the platform
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  BookOpen, 
-  Users, 
-  Trophy, 
-  Zap, 
-  ArrowRight, 
-  Star, 
-  Play, 
-  MessageCircle,
-  Award,
-  Target,
-  Clock,
-  Globe
-} from 'lucide-react';
+import { BookOpen, Users, Trophy, ArrowRight, Star, Play, MessageCircle, Target } from 'lucide-react';
+import { useCommunity } from '../contexts/CommunityContext';
 
 const Home: React.FC = () => {
+  const { currentCommunity } = useCommunity();
+
   const features = [
     {
       icon: Users,
@@ -84,23 +74,19 @@ const Home: React.FC = () => {
       <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-purple-900/20 to-pink-900/20"></div>
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1920')] bg-cover bg-center opacity-10"></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="mb-8">
             <div className="inline-flex items-center space-x-2 bg-indigo-600/20 backdrop-blur-sm border border-indigo-500/30 rounded-full px-4 py-2 mb-8">
-              <Zap className="w-4 h-4 text-indigo-400" />
-              <span className="text-indigo-300 text-sm font-medium">Community-Powered Learning</span>
+              <span className="text-indigo-300 text-sm font-medium">Welcome to {currentCommunity ? currentCommunity.name : 'the Community'}!</span>
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
-              Learn Together,
-              <br />
-              Grow Stronger
+              {currentCommunity ? currentCommunity.name : 'Learn Together'}
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-              Join thousands of learners in our vibrant communities. Master new skills through 
-              interactive courses, live sessions, and collaborative learning experiences.
+              {currentCommunity ? currentCommunity.description : 'Join thousands of learners in our vibrant communities. Master new skills through interactive courses, live sessions, and collaborative learning experiences.'}
             </p>
           </div>
 

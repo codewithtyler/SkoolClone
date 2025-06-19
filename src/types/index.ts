@@ -14,6 +14,7 @@ export interface User {
 
 export interface Community {
   id: string;
+  slug: string;
   name: string;
   description: string;
   image_url?: string;

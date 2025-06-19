@@ -1,7 +1,9 @@
 // Leaderboard page displaying user rankings and achievements
 import React, { useState } from 'react';
-import { Trophy, Medal, Award, Crown, TrendingUp, Calendar, Filter } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Trophy, Medal, Award, Crown, TrendingUp, Calendar } from 'lucide-react';
 import LeaderboardCard from '../components/LeaderboardCard';
+import { useCommunity } from '../contexts/CommunityContext';
 
 interface LeaderboardUser {
   id: string;
@@ -11,12 +13,15 @@ interface LeaderboardUser {
   level: number;
   points: number;
   rank: number;
+  community_id: string;
 }
 
 const Leaderboard: React.FC = () => {
+  const { slug } = useParams();
+  const { currentCommunity } = useCommunity();
   const [selectedPeriod, setSelectedPeriod] = useState('all-time');
 
-  // Mock data - replace with real data from Supabase
+  // Mock data - add community_id to each user
   const mockUsers: LeaderboardUser[] = [
     {
       id: '1',
@@ -25,7 +30,8 @@ const Leaderboard: React.FC = () => {
       avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
       level: 12,
       points: 15420,
-      rank: 1
+      rank: 1,
+      community_id: '1',
     },
     {
       id: '2',
@@ -33,7 +39,8 @@ const Leaderboard: React.FC = () => {
       full_name: 'Alex Chen',
       level: 11,
       points: 14890,
-      rank: 2
+      rank: 2,
+      community_id: '1',
     },
     {
       id: '3',
@@ -42,7 +49,8 @@ const Leaderboard: React.FC = () => {
       avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
       level: 10,
       points: 13750,
-      rank: 3
+      rank: 3,
+      community_id: '1',
     },
     {
       id: '4',
@@ -51,7 +59,8 @@ const Leaderboard: React.FC = () => {
       avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
       level: 9,
       points: 12340,
-      rank: 4
+      rank: 4,
+      community_id: '2',
     },
     {
       id: '5',
@@ -59,7 +68,8 @@ const Leaderboard: React.FC = () => {
       full_name: 'David Kim',
       level: 9,
       points: 11980,
-      rank: 5
+      rank: 5,
+      community_id: '2',
     },
     {
       id: '6',
@@ -68,7 +78,8 @@ const Leaderboard: React.FC = () => {
       avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
       level: 8,
       points: 10560,
-      rank: 6
+      rank: 6,
+      community_id: '2',
     },
     {
       id: '7',
@@ -76,7 +87,8 @@ const Leaderboard: React.FC = () => {
       full_name: 'James Anderson',
       level: 8,
       points: 9870,
-      rank: 7
+      rank: 7,
+      community_id: '1',
     },
     {
       id: '8',
@@ -85,7 +97,8 @@ const Leaderboard: React.FC = () => {
       avatar_url: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150',
       level: 7,
       points: 8990,
-      rank: 8
+      rank: 8,
+      community_id: '1',
     },
     {
       id: '9',
@@ -93,7 +106,8 @@ const Leaderboard: React.FC = () => {
       full_name: 'Tom Miller',
       level: 7,
       points: 8450,
-      rank: 9
+      rank: 9,
+      community_id: '1',
     },
     {
       id: '10',
@@ -102,9 +116,17 @@ const Leaderboard: React.FC = () => {
       avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
       level: 6,
       points: 7820,
-      rank: 10
+      rank: 10,
+      community_id: '2',
     }
   ];
+
+  // Filter users by current community
+  const filteredUsers = mockUsers.filter(user => user.community_id === currentCommunity?.id);
+
+  if (!currentCommunity || currentCommunity.slug !== slug) {
+    return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">No community selected.</div>;
+  }
 
   const periods = [
     { id: 'all-time', name: 'All Time', icon: Trophy },
@@ -112,18 +134,19 @@ const Leaderboard: React.FC = () => {
     { id: 'weekly', name: 'This Week', icon: TrendingUp }
   ];
 
-  const topThree = mockUsers.slice(0, 3);
-  const restOfUsers = mockUsers.slice(3);
+  const topThree = filteredUsers.slice(0, 3);
+  const restOfUsers = filteredUsers.slice(3);
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">🏆 Leaderboard</h1>
-          <p className="text-gray-400 text-lg">
-            See how you rank among our learning community
-          </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">{currentCommunity.name} Leaderboard</h1>
+            <p className="text-gray-400">
+              See who&apos;s leading in {currentCommunity.name}
+            </p>
+          </div>
         </div>
 
         {/* Period Filter */}
@@ -263,7 +286,7 @@ const Leaderboard: React.FC = () => {
               <Trophy className="w-8 h-8 text-white" />
             </div>
             <h3 className="text-xl font-bold text-white mb-2">Total Learners</h3>
-            <p className="text-3xl font-bold text-indigo-400">{mockUsers.length.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-indigo-400">{filteredUsers.length.toLocaleString()}</p>
           </div>
 
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 text-center">
@@ -272,7 +295,7 @@ const Leaderboard: React.FC = () => {
             </div>
             <h3 className="text-xl font-bold text-white mb-2">Points Earned</h3>
             <p className="text-3xl font-bold text-green-400">
-              {mockUsers.reduce((acc, user) => acc + user.points, 0).toLocaleString()}
+              {filteredUsers.reduce((acc, user) => acc + user.points, 0).toLocaleString()}
             </p>
           </div>
 
@@ -282,7 +305,7 @@ const Leaderboard: React.FC = () => {
             </div>
             <h3 className="text-xl font-bold text-white mb-2">Average Level</h3>
             <p className="text-3xl font-bold text-purple-400">
-              {Math.round(mockUsers.reduce((acc, user) => acc + user.level, 0) / mockUsers.length)}
+              {Math.round(filteredUsers.reduce((acc, user) => acc + user.level, 0) / filteredUsers.length)}
             </p>
           </div>
         </div>
